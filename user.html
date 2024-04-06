@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.0.1/tailwind.min.css'>
+    <link rel="stylesheet" type="text/css" href="style_user.css" />
+    <title>Submit Project</title>
+    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
+
+</head>
+
+<body>
+    <div class="w-screen h-screen overflow-auto text-gray-700 bg-gradient-to-tr from-blue-200 via-indigo-200 to-pink-200"
+        style="display: flex; justify-content: center;">
+        <div class="container">
+
+            <h1 style=" width:100%; margin: auto; font-size: x-large;  margin-top: 40px;">Climate Action Funding
+                Platform</h1>
+            <br>
+            <br><br>
+            <div class="brand-logo"></div>
+            <div class="brand-title">Submit Project</div>
+            <div class="inputs">
+                <label>Project Name</label>
+                <input id="name" type="text" placeholder="Coders" />
+                <label>Description</label>
+                <input id="description" type="text" placeholder="about your Project" />
+                <label>Funding Goal</label>
+                <input id="fundingGoal" type="number" placeholder="value in $" />
+                <!-- <label>Environmental Impact</label>
+            <input type="text" placeholder="explain in less than 250words" /> -->
+                <label>CO2 Reduction Target</label>
+                <input id="CO2ReductionTarget" type="number" placeholder="CO2 Reduction Target">
+                <label>Milestone Target</label>
+                <input id="milestoneTarget" type="number" placeholder="Milestone Target (wei)">
+                <!-- <textarea rows="4" cols="50" placeholder="explain in less than 250 words..."
+                    style="width: 515px;"></textarea> -->
+                <label>Upload File</label>
+                <input type="file" name="myfile">
+                <button onclick="submitProject()" type="submit">SUBMIT</button>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="app.js"></script>
+
+</html>

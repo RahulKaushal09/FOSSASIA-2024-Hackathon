@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
+import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+
 contract ClimateActionProjects {
     struct Project {
         uint256 id;
@@ -8,18 +10,26 @@ contract ClimateActionProjects {
         string name;
         string description;
         uint256 fundingGoal;
-        string environmentalImpact;
-        bool approved;
         uint256 currentFunding;
         uint256 milestoneTarget;
+        bool approved;
         bool milestoneReached;
+        uint256 CO2ReductionTarget;
     }
+
     address public admin;
     Project[] public projects;
     uint256 public nextProjectId;
+    AggregatorV3Interface internal CO2DataFeed;
 
-    constructor() {
+    event ProjectSubmitted(uint256 projectId, address owner);
+    event ProjectFunded(uint256 projectId, uint256 amount);
+    event ProjectApproved(uint256 projectId);
+
+    constructor(address _CO2DataFeedAddress) {
         admin = msg.sender;
+
+        CO2DataFeed = AggregatorV3Interface(_CO2DataFeedAddress);
     }
 
     modifier onlyAdmin() {
@@ -31,82 +41,52 @@ contract ClimateActionProjects {
         string memory name,
         string memory description,
         uint256 fundingGoal,
-        string memory environmentalImpact,
+        uint256 CO2ReductionTarget,
         uint256 milestoneTarget
     ) public {
-        Project memory newProject = Project({
-            id: nextProjectId,
-            owner: payable(msg.sender),
-            name: name,
-            description: description,
-            fundingGoal: fundingGoal,
-            environmentalImpact: environmentalImpact,
-            approved: false,
-            currentFunding: 0,
-            milestoneTarget: milestoneTarget,
-            milestoneReached: false
-        });
-        projects.push(newProject);
+        projects.push(
+            Project(
+                nextProjectId,
+                payable(msg.sender),
+                name,
+                description,
+                fundingGoal,
+                0,
+                milestoneTarget,
+                false,
+                false,
+                CO2ReductionTarget
+            )
+        );
+        emit ProjectSubmitted(nextProjectId, msg.sender);
         nextProjectId++;
     }
 
     function approveProject(uint256 projectId) public onlyAdmin {
-        Project storage project = projects[projectId];
-        // project.name = "approved";
-        project.approved = true;
+        // require(projectId < nextProjectId, "Invalid project ID");
+        projects[projectId].approved = true;
+        emit ProjectApproved(projectId);
     }
 
-    function contributeToFunding(uint256 projectId) public payable {
+    function fundProject(uint256 projectId) public payable {
+        // require(projectId < nextProjectId, "Invalid project ID");
         Project storage project = projects[projectId];
-        require(project.approved, "Project must be approved before funding");
-        // Transfer the funds directly to the project owner's address
-        project.owner.transfer(msg.value);
+        require(project.approved, "Project not approved");
         project.currentFunding += msg.value;
         if (project.currentFunding >= project.milestoneTarget) {
             project.milestoneReached = true;
         }
+        emit ProjectFunded(projectId, msg.value);
     }
 
     function getProjectsCount() public view returns (uint) {
         return projects.length;
     }
 
-    // AggregatorV3Interface internal priceFeed;
+    function getCurrentCO2Level() public view returns (int) {
+        (, int CO2Level, , , ) = CO2DataFeed.latestRoundData();
+        return CO2Level;
+    }
 
-    // // Chainlink VRF variables
-    // bytes32 internal keyHash;
-    // uint256 internal fee;
-
-    // // Constructor
-    // constructor(
-    //     address _priceFeed,
-    //     address _vrfCoordinator,
-    //     address _link,
-    //     bytes32 _keyHash,
-    //     uint256 _fee
-    // ) VRFConsumerBase(_vrfCoordinator, _link) {
-    //     priceFeed = AggregatorV3Interface(_priceFeed);
-    //     keyHash = _keyHash;
-    //     fee = _fee;
-    // }
-
-    // // Example function to request randomness
-    // function getRandomNumber() public returns (bytes32 requestId) {
-    //     require(LINK.balanceOf(address(this)) >= fee, "Not enough LINK");
-    //     return requestRandomness(keyHash, fee);
-    // }
-
-    // // Chainlink VRF callback function
-    // function fulfillRandomness(
-    //     bytes32 requestId,
-    //     uint256 randomness
-    // ) internal override {
-    //     // Use 'randomness' for fair project highlighting
-    // }
-
-    // // Example function to get the latest price from Chainlink Data Feed
-    // function getLatestPrice() public view returns (int) {
-    //     (, int price, , , ) = priceFeed.latestRoundData();
-    //     return price;
-    // }
+    // Add more functions as needed
 }
